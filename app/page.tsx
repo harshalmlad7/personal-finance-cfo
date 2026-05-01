@@ -56,32 +56,461 @@ type Goal = {
 
 const categoryMap: Record<string, Record<string, string[]>> = {
   Needs: {
-    Housing: ["Rent", "Maintenance", "Electricity", "Gas", "Internet"],
-    Transport: ["Metro", "Train", "Auto", "Cab", "Bus"],
-    Vehicle: ["Fuel", "Parking", "Toll", "Insurance", "Maintenance"],
-    Bills: ["Mobile", "Internet", "Utilities", "Insurance"]
+    Housing: [
+      "Rent",
+      "Home Loan EMI",
+      "Society Maintenance",
+      "House Repair",
+      "Furniture",
+      "Appliances",
+      "House Help",
+      "Pest Control",
+      "Cleaning Supplies",
+      "Property Tax",
+      "Brokerage",
+      "Other Housing"
+    ],
+    Utilities: [
+      "Electricity",
+      "Water",
+      "Gas Cylinder",
+      "Piped Gas",
+      "Broadband",
+      "Mobile Postpaid",
+      "DTH",
+      "Home Security",
+      "Waste Collection",
+      "Other Utilities"
+    ],
+    Groceries: [
+      "Monthly Groceries",
+      "Vegetables",
+      "Fruits",
+      "Milk & Dairy",
+      "Eggs",
+      "Meat & Fish",
+      "Bakery",
+      "Packaged Food",
+      "Household Essentials",
+      "Quick Commerce",
+      "Other Groceries"
+    ],
+    Transportation: [
+      "Metro",
+      "Train",
+      "Bus",
+      "Auto",
+      "Taxi / Cab",
+      "Bike Taxi",
+      "Office Commute",
+      "Airport Transfer",
+      "Intercity Travel",
+      "Public Transport Pass",
+      "Other Transport"
+    ],
+    Vehicle: [
+      "Fuel",
+      "Parking",
+      "Toll",
+      "Car Wash",
+      "Vehicle Insurance",
+      "Vehicle Maintenance",
+      "Vehicle Repair",
+      "Tyres",
+      "Battery",
+      "PUC",
+      "Fines / Challans",
+      "Vehicle EMI",
+      "Roadside Assistance",
+      "Other Vehicle"
+    ],
+    Healthcare: [
+      "Doctor Consultation",
+      "Medicines",
+      "Lab Tests",
+      "Dental",
+      "Eye Care",
+      "Therapy",
+      "Hospital",
+      "Health Insurance",
+      "Medical Devices",
+      "Fitness Recovery",
+      "Other Healthcare"
+    ],
+    Insurance: [
+      "Health Insurance",
+      "Life Insurance",
+      "Term Insurance",
+      "Vehicle Insurance",
+      "Travel Insurance",
+      "Home Insurance",
+      "Personal Accident Insurance",
+      "Critical Illness Cover",
+      "Other Insurance"
+    ],
+    Family: [
+      "Parents Support",
+      "Sibling Support",
+      "Children Expenses",
+      "School Fees",
+      "Tuition Fees",
+      "Family Medical",
+      "Family Travel",
+      "Family Gifts",
+      "Other Family"
+    ],
+    Education: [
+      "Course Fees",
+      "Online Learning",
+      "Books",
+      "Certifications",
+      "Coaching",
+      "Exam Fees",
+      "Workshops",
+      "Software Learning",
+      "Other Education"
+    ],
+    Taxes: [
+      "Income Tax",
+      "Advance Tax",
+      "Property Tax",
+      "Professional Tax",
+      "GST Payment",
+      "Tax Consultant",
+      "Penalty / Interest",
+      "Other Taxes"
+    ],
+    Legal: [
+      "Legal Consultation",
+      "Documentation",
+      "Notary",
+      "Agreement Registration",
+      "Lawyer Fees",
+      "Court Fees",
+      "Other Legal"
+    ]
   },
+
   Wants: {
     "Food & Drinks": [
       "Restaurants",
       "Online Food Delivery",
-      "Groceries",
+      "Cafes",
+      "Tea / Coffee",
+      "Office Lunch",
       "Snacks",
-      "Cafe"
+      "Street Food",
+      "Fine Dining",
+      "Pubs / Bars",
+      "Alcohol",
+      "Desserts",
+      "Weekend Food",
+      "Other Food"
     ],
-    Shopping: ["Clothing", "Electronics", "Personal Care", "Online Shopping"],
-    Entertainment: ["Movies", "OTT", "Events", "Trips", "Games"]
+    Shopping: [
+      "Clothing",
+      "Footwear",
+      "Accessories",
+      "Bags",
+      "Watches",
+      "Electronics",
+      "Mobile Phone",
+      "Gadgets",
+      "Home Decor",
+      "Online Shopping",
+      "Impulse Purchases",
+      "Luxury Shopping",
+      "Other Shopping"
+    ],
+    Entertainment: [
+      "Movies",
+      "OTT Subscriptions",
+      "Music Subscriptions",
+      "Gaming",
+      "Events",
+      "Concerts",
+      "Sports Events",
+      "Clubbing",
+      "Theme Parks",
+      "Weekend Outing",
+      "Other Entertainment"
+    ],
+    Lifestyle: [
+      "Salon",
+      "Spa",
+      "Gym",
+      "Fitness Classes",
+      "Sports",
+      "Hobbies",
+      "Dating",
+      "Socializing",
+      "Pets",
+      "Photography",
+      "Other Lifestyle"
+    ],
+    "Personal Care": [
+      "Skincare",
+      "Haircare",
+      "Cosmetics",
+      "Perfume",
+      "Grooming",
+      "Personal Hygiene",
+      "Supplements",
+      "Wellness Products",
+      "Other Personal Care"
+    ],
+    Travel: [
+      "Flights",
+      "Hotels",
+      "Visa",
+      "Travel Insurance",
+      "Local Transport",
+      "Food During Travel",
+      "Sightseeing",
+      "Shopping During Travel",
+      "Forex",
+      "Travel Gear",
+      "Weekend Trip",
+      "International Trip",
+      "Other Travel"
+    ],
+    Gifts: [
+      "Birthday Gifts",
+      "Wedding Gifts",
+      "Festival Gifts",
+      "Anniversary Gifts",
+      "Office Gifts",
+      "Family Gifts",
+      "Charity Gifts",
+      "Other Gifts"
+    ],
+    Subscriptions: [
+      "Netflix",
+      "Amazon Prime",
+      "Hotstar",
+      "Spotify",
+      "YouTube Premium",
+      "Cloud Storage",
+      "App Subscriptions",
+      "News Subscriptions",
+      "Software Subscriptions",
+      "Other Subscriptions"
+    ],
+    Donations: [
+      "Charity",
+      "Religious Donation",
+      "NGO",
+      "Crowdfunding",
+      "Tips",
+      "Community Support",
+      "Other Donations"
+    ],
+    Luxury: [
+      "Luxury Clothing",
+      "Luxury Watches",
+      "Premium Gadgets",
+      "Designer Items",
+      "Premium Dining",
+      "Luxury Travel",
+      "Other Luxury"
+    ]
   },
+
   Wealth: {
-    Investments: ["SIP", "Mutual Funds", "Stocks", "Gold", "FD"],
-    Savings: ["Emergency Fund", "Travel Fund", "Home Fund"]
+    Investments: [
+      "SIP",
+      "Mutual Funds",
+      "Stocks",
+      "ETF",
+      "Gold",
+      "Sovereign Gold Bond",
+      "Fixed Deposit",
+      "Recurring Deposit",
+      "PPF",
+      "NPS",
+      "EPF",
+      "Bonds",
+      "REIT",
+      "Crypto",
+      "Other Investments"
+    ],
+    Savings: [
+      "Emergency Fund",
+      "Travel Fund",
+      "Home Fund",
+      "Vehicle Fund",
+      "Marriage Fund",
+      "Education Fund",
+      "Medical Fund",
+      "Retirement Fund",
+      "Short-Term Savings",
+      "Other Savings"
+    ],
+    Assets: [
+      "Real Estate",
+      "Gold Jewellery",
+      "Digital Gold",
+      "Vehicle Asset",
+      "Business Asset",
+      "Collectibles",
+      "Other Assets"
+    ],
+    Retirement: [
+      "Retirement SIP",
+      "NPS Contribution",
+      "PPF Contribution",
+      "EPF Voluntary Contribution",
+      "Pension Plan",
+      "Annuity",
+      "Other Retirement"
+    ],
+    "Tax Saving": [
+      "ELSS",
+      "PPF",
+      "NPS",
+      "Life Insurance 80C",
+      "Health Insurance 80D",
+      "Home Loan Principal",
+      "Home Loan Interest",
+      "Other Tax Saving"
+    ],
+    "Goal Funding": [
+      "Emergency Goal",
+      "Travel Goal",
+      "Home Goal",
+      "Car Goal",
+      "Education Goal",
+      "Retirement Goal",
+      "Other Goal Funding"
+    ]
   },
+
   Debt: {
-    Loans: ["Personal Loan", "Home Loan", "Vehicle Loan", "Education Loan"],
-    Credit: ["Credit Card", "BNPL", "Late Fees"]
+    Loans: [
+      "Home Loan EMI",
+      "Personal Loan EMI",
+      "Vehicle Loan EMI",
+      "Education Loan EMI",
+      "Gold Loan EMI",
+      "Consumer Durable Loan",
+      "Business Loan EMI",
+      "Loan Processing Fee",
+      "Loan Prepayment",
+      "Loan Foreclosure",
+      "Other Loan"
+    ],
+    Credit: [
+      "Credit Card Payment",
+      "Credit Card Interest",
+      "Credit Card Late Fee",
+      "Minimum Due Payment",
+      "BNPL Payment",
+      "Overdraft Interest",
+      "Cash Advance Fee",
+      "Other Credit"
+    ],
+    Borrowing: [
+      "Borrowed From Friend",
+      "Borrowed From Family",
+      "Repaid Friend",
+      "Repaid Family",
+      "Informal Loan",
+      "Other Borrowing"
+    ],
+    Charges: [
+      "Bank Charges",
+      "ATM Charges",
+      "Card Annual Fee",
+      "Processing Fee",
+      "Penalty",
+      "Late Payment Fee",
+      "Bounce Charges",
+      "Other Charges"
+    ]
   },
+
   Income: {
-    Income: ["Salary", "Bonus", "Freelance", "Interest", "Refund"]
+    Salary: [
+      "Monthly Salary",
+      "Bonus",
+      "Incentive",
+      "Overtime",
+      "Arrears",
+      "Reimbursement",
+      "Leave Encashment",
+      "Gratuity",
+      "Other Salary Income"
+    ],
+    Business: [
+      "Business Revenue",
+      "Client Payment",
+      "Consulting Income",
+      "Freelance Income",
+      "Commission",
+      "Affiliate Income",
+      "Other Business Income"
+    ],
+    Investments: [
+      "Dividend",
+      "Interest",
+      "Capital Gains",
+      "Mutual Fund Redemption",
+      "Stock Sale",
+      "FD Interest",
+      "RD Interest",
+      "Bond Interest",
+      "Other Investment Income"
+    ],
+    Refunds: [
+      "Tax Refund",
+      "Shopping Refund",
+      "Travel Refund",
+      "Cashback",
+      "Wallet Refund",
+      "Insurance Claim",
+      "Reimbursement",
+      "Other Refund"
+    ],
+    "Other Income": [
+      "Gift Received",
+      "Rent Received",
+      "Prize",
+      "Side Hustle",
+      "Sale of Asset",
+      "Other Income"
+    ]
+  },
+
+  Others: {
+    Uncategorized: [
+      "Unknown Expense",
+      "Cash Adjustment",
+      "Balance Correction",
+      "Split Expense",
+      "Reimbursement Pending",
+      "Transfer Between Accounts",
+      "Mistake Entry",
+      "Other Miscellaneous"
+    ],
+    Transfers: [
+      "Bank Transfer",
+      "Wallet Transfer",
+      "Cash Withdrawal",
+      "Cash Deposit",
+      "Credit Card Payment Transfer",
+      "Investment Transfer",
+      "Account Adjustment",
+      "Other Transfer"
+    ],
+    Work: [
+      "Office Expense",
+      "Work Travel",
+      "Client Meeting",
+      "Work Meals",
+      "Work Software",
+      "Work Reimbursement",
+      "Other Work"
+    ]
   }
 };
 
@@ -91,8 +520,8 @@ const sampleTransactions: Transaction[] = [
     date: "2026-05-01",
     type: "income",
     bucket: "Income",
-    category: "Income",
-    subcategory: "Salary",
+    category: "Salary",
+    subcategory: "Monthly Salary",
     merchant: "Company",
     amount: 75000,
     note: "Monthly salary"
@@ -222,12 +651,31 @@ const trustedSources = [
       "Official World Bank documentation for global development and economic indicators.",
     url: "https://datahelpdesk.worldbank.org/knowledgebase/articles/889392-about-the-indicators-api-documentation",
     priority: 90
+  },
+  {
+    title: "Reserve Bank of India",
+    category: "Regulation",
+    keywords: ["rbi", "reserve bank", "monetary policy", "banking", "india"],
+    description:
+      "Official Reserve Bank of India website for banking, regulation, monetary policy and notifications.",
+    url: "https://www.rbi.org.in/",
+    priority: 94
+  },
+  {
+    title: "SEBI Official Website",
+    category: "Regulation",
+    keywords: ["sebi", "securities", "investment advisor", "mutual fund", "regulation"],
+    description:
+      "Official SEBI website for securities market regulations, investor protection and circulars.",
+    url: "https://www.sebi.gov.in/",
+    priority: 94
   }
 ];
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
   { id: "transactions", label: "Transactions", icon: <ReceiptText size={18} /> },
+  { id: "categories", label: "Categories", icon: <BarChart3 size={18} /> },
   { id: "spending", label: "Spending", icon: <BarChart3 size={18} /> },
   { id: "calculators", label: "Calculators", icon: <Calculator size={18} /> },
   { id: "loans", label: "Loans", icon: <Landmark size={18} /> },
@@ -385,9 +833,9 @@ export default function Home() {
   });
 
   useEffect(() => {
-    const savedTransactions = localStorage.getItem("pfc_transactions_v4");
-    const savedLoans = localStorage.getItem("pfc_loans_v4");
-    const savedGoals = localStorage.getItem("pfc_goals_v4");
+    const savedTransactions = localStorage.getItem("pfc_transactions_advanced");
+    const savedLoans = localStorage.getItem("pfc_loans_advanced");
+    const savedGoals = localStorage.getItem("pfc_goals_advanced");
 
     setTransactions(savedTransactions ? JSON.parse(savedTransactions) : sampleTransactions);
     setLoans(savedLoans ? JSON.parse(savedLoans) : sampleLoans);
@@ -395,19 +843,35 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("pfc_transactions_v4", JSON.stringify(transactions));
+    localStorage.setItem("pfc_transactions_advanced", JSON.stringify(transactions));
   }, [transactions]);
 
   useEffect(() => {
-    localStorage.setItem("pfc_loans_v4", JSON.stringify(loans));
+    localStorage.setItem("pfc_loans_advanced", JSON.stringify(loans));
   }, [loans]);
 
   useEffect(() => {
-    localStorage.setItem("pfc_goals_v4", JSON.stringify(goals));
+    localStorage.setItem("pfc_goals_advanced", JSON.stringify(goals));
   }, [goals]);
 
   const categories = Object.keys(categoryMap[form.bucket] || {});
   const subcategories = categoryMap[form.bucket]?.[form.category] || [];
+
+  const categoryStats = useMemo(() => {
+    return Object.entries(categoryMap).map(([bucket, categories]) => {
+      const categoryCount = Object.keys(categories).length;
+      const subcategoryCount = Object.values(categories).reduce(
+        (sum, subs) => sum + subs.length,
+        0
+      );
+
+      return {
+        bucket,
+        categoryCount,
+        subcategoryCount
+      };
+    });
+  }, []);
 
   const totals = useMemo(() => {
     const income = transactions
@@ -514,6 +978,7 @@ export default function Home() {
       return {
         internal: [],
         sources: [],
+        categories: [],
         hasQuery: false
       };
     }
@@ -540,6 +1005,27 @@ export default function Home() {
         };
       })
       .filter((item) => item.score > 0);
+
+    const categoryResults = Object.entries(categoryMap).flatMap(([bucket, categories]) =>
+      Object.entries(categories).flatMap(([category, subcategories]) => {
+        const categoryScore = scoreText(
+          query,
+          [bucket, category, subcategories.join(" ")].join(" ")
+        );
+
+        if (categoryScore <= 0) return [];
+
+        return [
+          {
+            type: "Category",
+            title: `${bucket} → ${category}`,
+            subtitle: `${subcategories.length} subcategories: ${subcategories.slice(0, 6).join(", ")}${subcategories.length > 6 ? "..." : ""}`,
+            amount: `${subcategories.length} items`,
+            score: categoryScore
+          }
+        ];
+      })
+    );
 
     const loanResults = loans
       .map((loan) => {
@@ -655,16 +1141,18 @@ export default function Home() {
 
     const internal = [
       ...calculatorResults,
+      ...categoryResults,
       ...transactionResults,
       ...loanResults,
       ...goalResults
     ]
       .sort((a, b) => b.score - a.score)
-      .slice(0, 12);
+      .slice(0, 15);
 
     return {
       internal,
       sources: sourceResults,
+      categories: categoryResults,
       hasQuery: true
     };
   }, [searchQuery, transactions, loans, goals]);
@@ -878,7 +1366,7 @@ export default function Home() {
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search anything: Swiggy, EMI, SIP, SEBI, NAV, RBI..."
+                placeholder="Search anything: Swiggy, EMI, SIP, SEBI, NAV, RBI, Fuel..."
                 style={searchInput}
               />
             </div>
@@ -901,7 +1389,7 @@ export default function Home() {
                 <h3 style={searchSectionTitle}>Your App Data & Tools</h3>
 
                 {searchResults.internal.length === 0 && (
-                  <EmptyText text="No matching transactions, calculators, loans, or goals found." />
+                  <EmptyText text="No matching transactions, calculators, categories, loans, or goals found." />
                 )}
 
                 {searchResults.internal.map((result, index) => (
@@ -961,7 +1449,7 @@ export default function Home() {
                 </div>
                 <h2 style={heroTitle}>Control spending. Reduce debt. Build wealth.</h2>
                 <p style={heroText}>
-                  Your dashboard tracks cash flow, savings, debt burden, goals, calculators, and spending leakage in one cockpit.
+                  Your dashboard tracks cash flow, savings, debt burden, goals, calculators, category depth, and spending leakage in one cockpit.
                 </p>
               </div>
 
@@ -1084,15 +1572,20 @@ export default function Home() {
               <Field label="Type">
                 <select
                   value={form.type}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const nextType = e.target.value as "income" | "expense";
+                    const nextBucket = nextType === "income" ? "Income" : "Wants";
+                    const nextCategory = Object.keys(categoryMap[nextBucket])[0];
+                    const nextSubcategory = categoryMap[nextBucket][nextCategory][0];
+
                     setForm({
                       ...form,
-                      type: e.target.value as "income" | "expense",
-                      bucket: e.target.value === "income" ? "Income" : "Wants",
-                      category: e.target.value === "income" ? "Income" : "Food & Drinks",
-                      subcategory: e.target.value === "income" ? "Salary" : "Online Food Delivery"
-                    })
-                  }
+                      type: nextType,
+                      bucket: nextBucket,
+                      category: nextCategory,
+                      subcategory: nextSubcategory
+                    });
+                  }}
                   style={inputStyle}
                 >
                   <option value="expense">Expense</option>
@@ -1199,6 +1692,65 @@ export default function Home() {
                 onDelete={deleteTransaction}
               />
             </div>
+          </section>
+        )}
+
+        {tab === "categories" && (
+          <section>
+            <section style={calculatorHero}>
+              <div>
+                <div style={premiumBadgeDark}>
+                  <BarChart3 size={14} /> Category Intelligence
+                </div>
+                <h2 style={calculatorHeroTitle}>Deep category funnel for sharper money control.</h2>
+                <p style={calculatorHeroText}>
+                  This structure helps you track not only where money went, but exactly which subcategory caused the leakage.
+                </p>
+              </div>
+            </section>
+
+            <section style={statGrid}>
+              {categoryStats.map((item) => (
+                <MetricCard
+                  key={item.bucket}
+                  title={item.bucket}
+                  value={`${item.categoryCount} categories`}
+                  subtext={`${item.subcategoryCount} subcategories`}
+                  icon={<BarChart3 />}
+                  trend="Funnel"
+                  tone={item.bucket === "Needs" ? "blue" : item.bucket === "Wants" ? "red" : item.bucket === "Wealth" ? "green" : "gold"}
+                />
+              ))}
+            </section>
+
+            <section style={categoryExplorerGrid}>
+              {Object.entries(categoryMap).map(([bucket, categories]) => (
+                <div key={bucket} style={panel}>
+                  <PanelHeader
+                    title={bucket}
+                    subtitle={`${Object.keys(categories).length} categories`}
+                    icon={<BarChart3 />}
+                  />
+
+                  {Object.entries(categories).map(([category, subcategories]) => (
+                    <details key={category} style={categoryDetails}>
+                      <summary style={categorySummary}>
+                        <strong>{category}</strong>
+                        <span>{subcategories.length} items</span>
+                      </summary>
+
+                      <div style={subcategoryWrap}>
+                        {subcategories.map((subcategory) => (
+                          <span key={subcategory} style={subcategoryChip}>
+                            {subcategory}
+                          </span>
+                        ))}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              ))}
+            </section>
           </section>
         )}
 
@@ -1949,6 +2501,7 @@ function getPageTitle(tab: string) {
   const map: Record<string, string> = {
     dashboard: "Dashboard",
     transactions: "Transactions",
+    categories: "Categories",
     spending: "Spending Analytics",
     calculators: "Financial Calculators",
     loans: "Loans & Debt",
@@ -2666,6 +3219,45 @@ const twoColumnGrid: CSSProperties = {
   display: "grid",
   gridTemplateColumns: "minmax(320px, 0.85fr) minmax(360px, 1.2fr)",
   gap: 18
+};
+
+const categoryExplorerGrid: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
+  gap: 18
+};
+
+const categoryDetails: CSSProperties = {
+  padding: 14,
+  borderRadius: 18,
+  background: "#f8fafc",
+  border: "1px solid #e2e8f0",
+  marginBottom: 10
+};
+
+const categorySummary: CSSProperties = {
+  cursor: "pointer",
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 10,
+  color: "#0f172a"
+};
+
+const subcategoryWrap: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 8,
+  marginTop: 12
+};
+
+const subcategoryChip: CSSProperties = {
+  display: "inline-flex",
+  padding: "7px 10px",
+  borderRadius: 999,
+  background: "white",
+  border: "1px solid #e2e8f0",
+  fontSize: 13,
+  color: "#334155"
 };
 
 const panel: CSSProperties = {
