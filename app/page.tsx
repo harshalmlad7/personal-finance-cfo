@@ -8,7 +8,7 @@ import {
   BarChart3,
   Bell,
   Brain,
-  CalendarClock,
+  Calculator,
   CreditCard,
   Landmark,
   LayoutDashboard,
@@ -157,10 +157,79 @@ const sampleGoals: Goal[] = [
   }
 ];
 
+const trustedSources = [
+  {
+    title: "SEBI Investor Portal - Mutual Fund Risk-o-meter",
+    category: "Regulation",
+    keywords: [
+      "sebi",
+      "riskometer",
+      "risk-o-meter",
+      "mutual fund risk",
+      "mutual funds",
+      "investment risk"
+    ],
+    description:
+      "Official SEBI investor education page explaining mutual fund Risk-o-meter and risk levels.",
+    url: "https://investor.sebi.gov.in/riskometer.html",
+    priority: 95
+  },
+  {
+    title: "RBI Account Aggregator Master Direction",
+    category: "Regulation",
+    keywords: [
+      "rbi",
+      "account aggregator",
+      "aa framework",
+      "bank sync",
+      "consent",
+      "financial data sharing"
+    ],
+    description:
+      "Official RBI Master Direction for NBFC Account Aggregator framework and consent-based financial data sharing.",
+    url: "https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=10598",
+    priority: 95
+  },
+  {
+    title: "AMFI Latest NAV Download",
+    category: "Mutual Funds",
+    keywords: [
+      "amfi",
+      "nav",
+      "latest nav",
+      "mutual fund nav",
+      "sip",
+      "fund value"
+    ],
+    description:
+      "Official AMFI page for latest and historical mutual fund NAV data.",
+    url: "https://www.amfiindia.com/net-asset-value/nav-download",
+    priority: 92
+  },
+  {
+    title: "World Bank Indicators API",
+    category: "World Data",
+    keywords: [
+      "world bank",
+      "global data",
+      "inflation",
+      "gdp",
+      "country data",
+      "economic indicators",
+      "world information"
+    ],
+    description:
+      "Official World Bank documentation for global development and economic indicators.",
+    url: "https://datahelpdesk.worldbank.org/knowledgebase/articles/889392-about-the-indicators-api-documentation",
+    priority: 90
+  }
+];
+
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
   { id: "transactions", label: "Transactions", icon: <ReceiptText size={18} /> },
   { id: "spending", label: "Spending", icon: <BarChart3 size={18} /> },
+  { id: "calculators", label: "Calculators", icon: <Calculator size={18} /> },
   { id: "loans", label: "Loans", icon: <Landmark size={18} /> },
   { id: "goals", label: "Goals", icon: <Target size={18} /> },
   { id: "mutual funds", label: "Mutual Funds", icon: <PiggyBank size={18} /> },
@@ -184,8 +253,62 @@ function emi(principal: number, annualRate: number, months: number) {
   return (principal * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
 }
 
+function sipFutureValue(monthlyInvestment: number, annualReturn: number, years: number) {
+  const r = annualReturn / 12 / 100;
+  const n = years * 12;
+  if (!monthlyInvestment || !years) return 0;
+  if (!r) return monthlyInvestment * n;
+  return monthlyInvestment * ((Math.pow(1 + r, n) - 1) / r) * (1 + r);
+}
+
+function lumpSumFutureValue(principal: number, annualReturn: number, years: number) {
+  return principal * Math.pow(1 + annualReturn / 100, years);
+}
+
+function fdMaturity(principal: number, annualRate: number, years: number) {
+  return principal * Math.pow(1 + annualRate / 100, years);
+}
+
+function rdMaturity(monthlyDeposit: number, annualRate: number, years: number) {
+  const r = annualRate / 4 / 100;
+  const months = years * 12;
+  let maturity = 0;
+
+  for (let i = 0; i < months; i++) {
+    const remainingMonths = months - i;
+    const quarters = remainingMonths / 3;
+    maturity += monthlyDeposit * Math.pow(1 + r, quarters);
+  }
+
+  return maturity;
+}
+
+function normalizeSearch(text: string) {
+  return text.toLowerCase().trim();
+}
+
+function scoreText(query: string, text: string) {
+  const q = normalizeSearch(query);
+  const t = normalizeSearch(text);
+
+  if (!q || !t) return 0;
+
+  const words = q.split(/\s+/).filter(Boolean);
+  let score = 0;
+
+  if (t === q) score += 100;
+  if (t.includes(q)) score += 60;
+
+  words.forEach((word) => {
+    if (t.includes(word)) score += 12;
+  });
+
+  return score;
+}
+
 export default function Home() {
   const [tab, setTab] = useState("dashboard");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loans, setLoans] = useState<Loan[]>([]);
@@ -215,10 +338,56 @@ export default function Home() {
     saved: ""
   });
 
+  const [calcType, setCalcType] = useState("emi");
+
+  const [emiCalc, setEmiCalc] = useState({
+    loanType: "Home Loan",
+    amount: 1000000,
+    rate: 8,
+    months: 120
+  });
+
+  const [sipCalc, setSipCalc] = useState({
+    monthly: 10000,
+    returnRate: 12,
+    years: 10
+  });
+
+  const [lumpCalc, setLumpCalc] = useState({
+    amount: 100000,
+    returnRate: 12,
+    years: 10
+  });
+
+  const [fdCalc, setFdCalc] = useState({
+    amount: 100000,
+    rate: 7,
+    years: 5
+  });
+
+  const [rdCalc, setRdCalc] = useState({
+    monthly: 5000,
+    rate: 7,
+    years: 5
+  });
+
+  const [goalCalc, setGoalCalc] = useState({
+    target: 500000,
+    current: 50000,
+    years: 5,
+    returnRate: 10
+  });
+
+  const [cardCalc, setCardCalc] = useState({
+    outstanding: 75000,
+    annualRate: 36,
+    monthlyPayment: 10000
+  });
+
   useEffect(() => {
-    const savedTransactions = localStorage.getItem("pfc_transactions_v3");
-    const savedLoans = localStorage.getItem("pfc_loans_v3");
-    const savedGoals = localStorage.getItem("pfc_goals_v3");
+    const savedTransactions = localStorage.getItem("pfc_transactions_v4");
+    const savedLoans = localStorage.getItem("pfc_loans_v4");
+    const savedGoals = localStorage.getItem("pfc_goals_v4");
 
     setTransactions(savedTransactions ? JSON.parse(savedTransactions) : sampleTransactions);
     setLoans(savedLoans ? JSON.parse(savedLoans) : sampleLoans);
@@ -226,15 +395,15 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("pfc_transactions_v3", JSON.stringify(transactions));
+    localStorage.setItem("pfc_transactions_v4", JSON.stringify(transactions));
   }, [transactions]);
 
   useEffect(() => {
-    localStorage.setItem("pfc_loans_v3", JSON.stringify(loans));
+    localStorage.setItem("pfc_loans_v4", JSON.stringify(loans));
   }, [loans]);
 
   useEffect(() => {
-    localStorage.setItem("pfc_goals_v3", JSON.stringify(goals));
+    localStorage.setItem("pfc_goals_v4", JSON.stringify(goals));
   }, [goals]);
 
   const categories = Object.keys(categoryMap[form.bucket] || {});
@@ -281,9 +450,7 @@ export default function Home() {
   const dailyBars = useMemo(() => {
     const expenses = transactions.filter((t) => t.type === "expense");
     const values = expenses.slice(0, 7).map((t) => t.amount).reverse();
-
     if (values.length === 0) return [10, 20, 12, 30, 18, 24, 14];
-
     return values;
   }, [transactions]);
 
@@ -314,11 +481,9 @@ export default function Home() {
 
   const riskScore = useMemo(() => {
     let score = 28;
-
     if (totals.savingsRate < 20) score += 20;
     if (loanSummary.debtBurden > 35) score += 25;
     if (wantsSpend > totals.income * 0.3) score += 15;
-
     return Math.min(score, 100);
   }, [totals, loanSummary.debtBurden, wantsSpend]);
 
@@ -341,6 +506,217 @@ export default function Home() {
 
     return "You are in a decent position. Keep emergency fund priority high, continue SIPs, and avoid lifestyle inflation.";
   }, [totals.income, totals.savingsRate, loanSummary.debtBurden, riskScore]);
+
+  const searchResults = useMemo(() => {
+    const query = normalizeSearch(searchQuery);
+
+    if (!query) {
+      return {
+        internal: [],
+        sources: [],
+        hasQuery: false
+      };
+    }
+
+    const transactionResults = transactions
+      .map((transaction) => {
+        const searchableText = [
+          transaction.merchant,
+          transaction.date,
+          transaction.type,
+          transaction.bucket,
+          transaction.category,
+          transaction.subcategory,
+          transaction.amount,
+          transaction.note
+        ].join(" ");
+
+        return {
+          type: "Transaction",
+          title: transaction.merchant,
+          subtitle: `${transaction.date} • ${transaction.bucket} → ${transaction.category} → ${transaction.subcategory}`,
+          amount: money(transaction.amount),
+          score: scoreText(query, searchableText)
+        };
+      })
+      .filter((item) => item.score > 0);
+
+    const loanResults = loans
+      .map((loan) => {
+        const monthlyEmi = emi(loan.principal, loan.rate, loan.months);
+        const searchableText = [
+          loan.name,
+          loan.principal,
+          loan.rate,
+          loan.months,
+          "loan",
+          "emi",
+          "debt",
+          "calculator"
+        ].join(" ");
+
+        return {
+          type: "Loan",
+          title: loan.name,
+          subtitle: `Principal ${money(loan.principal)} • EMI ${money(monthlyEmi)} • Rate ${loan.rate}%`,
+          amount: money(monthlyEmi),
+          score: scoreText(query, searchableText)
+        };
+      })
+      .filter((item) => item.score > 0);
+
+    const goalResults = goals
+      .map((goal) => {
+        const searchableText = [
+          goal.name,
+          goal.target,
+          goal.saved,
+          "goal",
+          "saving",
+          "target",
+          "calculator"
+        ].join(" ");
+
+        return {
+          type: "Goal",
+          title: goal.name,
+          subtitle: `Saved ${money(goal.saved)} of ${money(goal.target)}`,
+          amount: `${goal.target ? Math.round((goal.saved / goal.target) * 100) : 0}%`,
+          score: scoreText(query, searchableText)
+        };
+      })
+      .filter((item) => item.score > 0);
+
+    const calculatorResults = [
+      {
+        type: "Calculator",
+        title: "EMI Calculator",
+        subtitle: "Home loan, personal loan and car loan EMI calculation",
+        amount: "Open",
+        score: scoreText(query, "emi loan home loan personal loan car loan calculator interest tenure")
+      },
+      {
+        type: "Calculator",
+        title: "SIP Calculator",
+        subtitle: "Monthly SIP future value and wealth projection",
+        amount: "Open",
+        score: scoreText(query, "sip mutual fund monthly investment calculator future value")
+      },
+      {
+        type: "Calculator",
+        title: "FD / RD Calculator",
+        subtitle: "Fixed deposit and recurring deposit maturity estimates",
+        amount: "Open",
+        score: scoreText(query, "fd rd fixed deposit recurring deposit calculator")
+      },
+      {
+        type: "Calculator",
+        title: "Goal Planning Calculator",
+        subtitle: "Monthly investment required to reach a future goal",
+        amount: "Open",
+        score: scoreText(query, "goal planning target saving travel emergency fund calculator")
+      },
+      {
+        type: "Calculator",
+        title: "Credit Card Payoff Calculator",
+        subtitle: "Estimate months required to clear credit card outstanding",
+        amount: "Open",
+        score: scoreText(query, "credit card debt payoff calculator interest")
+      }
+    ].filter((item) => item.score > 0);
+
+    const sourceResults = trustedSources
+      .map((source) => {
+        const searchableText = [
+          source.title,
+          source.category,
+          source.description,
+          source.keywords.join(" ")
+        ].join(" ");
+
+        return {
+          ...source,
+          score: scoreText(query, searchableText) + source.priority
+        };
+      })
+      .filter((source) =>
+        scoreText(
+          query,
+          [
+            source.title,
+            source.category,
+            source.description,
+            source.keywords.join(" ")
+          ].join(" ")
+        ) > 0
+      )
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
+
+    const internal = [
+      ...calculatorResults,
+      ...transactionResults,
+      ...loanResults,
+      ...goalResults
+    ]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 12);
+
+    return {
+      internal,
+      sources: sourceResults,
+      hasQuery: true
+    };
+  }, [searchQuery, transactions, loans, goals]);
+
+  const emiValue = emi(emiCalc.amount, emiCalc.rate, emiCalc.months);
+  const emiTotal = emiValue * emiCalc.months;
+  const emiInterest = emiTotal - emiCalc.amount;
+  const emiInterestPercent = emiTotal ? Math.round((emiInterest / emiTotal) * 100) : 0;
+
+  const sipMaturity = sipFutureValue(sipCalc.monthly, sipCalc.returnRate, sipCalc.years);
+  const sipInvested = sipCalc.monthly * sipCalc.years * 12;
+  const sipGains = sipMaturity - sipInvested;
+
+  const lumpMaturity = lumpSumFutureValue(lumpCalc.amount, lumpCalc.returnRate, lumpCalc.years);
+  const lumpGains = lumpMaturity - lumpCalc.amount;
+
+  const fdValue = fdMaturity(fdCalc.amount, fdCalc.rate, fdCalc.years);
+  const fdInterest = fdValue - fdCalc.amount;
+
+  const rdValue = rdMaturity(rdCalc.monthly, rdCalc.rate, rdCalc.years);
+  const rdInvested = rdCalc.monthly * rdCalc.years * 12;
+  const rdInterest = rdValue - rdInvested;
+
+  const goalGap = Math.max(goalCalc.target - goalCalc.current, 0);
+  const goalMonths = goalCalc.years * 12;
+  const goalMonthlyRequired = goalMonths ? goalGap / goalMonths : 0;
+  const goalSIPRequired = useMemo(() => {
+    const r = goalCalc.returnRate / 12 / 100;
+    const n = goalCalc.years * 12;
+    if (!n) return 0;
+    if (!r) return goalGap / n;
+    return goalGap / (((Math.pow(1 + r, n) - 1) / r) * (1 + r));
+  }, [goalCalc, goalGap]);
+
+  const cardMonthlyRate = cardCalc.annualRate / 12 / 100;
+  const cardMonths = useMemo(() => {
+    let balance = cardCalc.outstanding;
+    let months = 0;
+    let totalInterest = 0;
+
+    while (balance > 0 && months < 600) {
+      const interest = balance * cardMonthlyRate;
+      totalInterest += interest;
+      balance += interest;
+      balance -= cardCalc.monthlyPayment;
+      months += 1;
+
+      if (cardCalc.monthlyPayment <= interest) return { months: 999, totalInterest };
+    }
+
+    return { months, totalInterest };
+  }, [cardCalc, cardMonthlyRate]);
 
   function addTransaction() {
     const amount = Number(form.amount);
@@ -368,7 +744,6 @@ export default function Home() {
   function deleteTransaction(id: string) {
     const consent = window.confirm("Are you sure you want to delete this transaction?");
     if (!consent) return;
-
     setTransactions(transactions.filter((x) => x.id !== id));
   }
 
@@ -399,7 +774,6 @@ export default function Home() {
   function deleteLoan(id: string) {
     const consent = window.confirm("Are you sure you want to delete this loan?");
     if (!consent) return;
-
     setLoans(loans.filter((x) => x.id !== id));
   }
 
@@ -428,7 +802,6 @@ export default function Home() {
   function deleteGoal(id: string) {
     const consent = window.confirm("Are you sure you want to delete this goal?");
     if (!consent) return;
-
     setGoals(goals.filter((x) => x.id !== id));
   }
 
@@ -502,13 +875,82 @@ export default function Home() {
           <div style={topbarRight}>
             <div style={searchBox}>
               <Search size={16} />
-              <span>Search transactions, goals, loans...</span>
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search anything: Swiggy, EMI, SIP, SEBI, NAV, RBI..."
+                style={searchInput}
+              />
             </div>
             <button style={iconButton}>
               <Bell size={18} />
             </button>
           </div>
         </header>
+
+        {searchResults.hasQuery && (
+          <section style={searchResultsPanel}>
+            <PanelHeader
+              title={`Search results for "${searchQuery}"`}
+              subtitle="App data first. Verified source links separately. No hallucinated answers."
+              icon={<Search />}
+            />
+
+            <section style={searchGrid}>
+              <div style={panel}>
+                <h3 style={searchSectionTitle}>Your App Data & Tools</h3>
+
+                {searchResults.internal.length === 0 && (
+                  <EmptyText text="No matching transactions, calculators, loans, or goals found." />
+                )}
+
+                {searchResults.internal.map((result, index) => (
+                  <div key={`${result.type}-${index}`} style={searchResultRow}>
+                    <div>
+                      <span style={resultTypeBadge}>{result.type}</span>
+                      <strong style={{ display: "block", marginTop: 6 }}>
+                        {result.title}
+                      </strong>
+                      <p style={mutedText}>{result.subtitle}</p>
+                    </div>
+
+                    <strong>{result.amount}</strong>
+                  </div>
+                ))}
+              </div>
+
+              <div style={panel}>
+                <h3 style={searchSectionTitle}>Verified Sources</h3>
+
+                {searchResults.sources.length === 0 && (
+                  <EmptyText text="No verified source match yet. Future live APIs will broaden world search." />
+                )}
+
+                {searchResults.sources.map((source) => (
+                  <a
+                    key={source.url}
+                    href={source.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={sourceCard}
+                  >
+                    <span style={sourceCategoryBadge}>{source.category}</span>
+                    <strong style={{ display: "block", marginTop: 8 }}>
+                      {source.title}
+                    </strong>
+                    <p style={mutedText}>{source.description}</p>
+                    <p style={sourceLinkText}>Open verified source →</p>
+                  </a>
+                ))}
+              </div>
+            </section>
+
+            <div style={antiHallucinationBox}>
+              <ShieldCheck size={18} />
+              Rule: If verified data or a trusted source is unavailable, the app should say it cannot verify instead of guessing.
+            </div>
+          </section>
+        )}
 
         {tab === "dashboard" && (
           <>
@@ -519,7 +961,7 @@ export default function Home() {
                 </div>
                 <h2 style={heroTitle}>Control spending. Reduce debt. Build wealth.</h2>
                 <p style={heroText}>
-                  Your dashboard tracks cash flow, savings, debt burden, goals, and spending leakage in one premium cockpit.
+                  Your dashboard tracks cash flow, savings, debt burden, goals, calculators, and spending leakage in one cockpit.
                 </p>
               </div>
 
@@ -585,7 +1027,7 @@ export default function Home() {
 
                 <div style={actionList}>
                   <ActionItem label="Track daily" />
-                  <ActionItem label="Avoid lifestyle inflation" />
+                  <ActionItem label="Use calculators before decisions" />
                   <ActionItem label="Protect emergency fund" />
                 </div>
               </div>
@@ -757,6 +1199,464 @@ export default function Home() {
                 onDelete={deleteTransaction}
               />
             </div>
+          </section>
+        )}
+
+        {tab === "calculators" && (
+          <section>
+            <div style={calculatorHero}>
+              <div>
+                <div style={premiumBadgeDark}>
+                  <Calculator size={14} /> Premium financial calculators
+                </div>
+                <h2 style={calculatorHeroTitle}>Plan before you spend, borrow or invest.</h2>
+                <p style={calculatorHeroText}>
+                  Use EMI, SIP, lump sum, FD, RD, goal and credit card calculators before taking money decisions.
+                </p>
+              </div>
+
+              <button style={primaryButton} onClick={() => setTab("transactions")}>
+                Add real transaction
+              </button>
+            </div>
+
+            <div style={calculatorTabs}>
+              {[
+                ["emi", "EMI"],
+                ["sip", "SIP"],
+                ["lumpsum", "Lump Sum"],
+                ["fd", "FD"],
+                ["rd", "RD"],
+                ["goal", "Goal"],
+                ["card", "Credit Card"]
+              ].map(([id, label]) => (
+                <button
+                  key={id}
+                  onClick={() => setCalcType(id)}
+                  style={calcType === id ? calculatorTabActive : calculatorTab}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {calcType === "emi" && (
+              <section style={calculatorGrid}>
+                <div style={calculatorInputPanel}>
+                  <PanelHeader
+                    title="Loan EMI Calculator"
+                    subtitle="Home loan, personal loan and car loan"
+                    icon={<Landmark />}
+                  />
+
+                  <div style={loanTypeGrid}>
+                    {["Home Loan", "Personal Loan", "Car Loan"].map((loanType) => (
+                      <button
+                        key={loanType}
+                        onClick={() => setEmiCalc({ ...emiCalc, loanType })}
+                        style={emiCalc.loanType === loanType ? loanTypeActive : loanTypeButton}
+                      >
+                        {loanType}
+                      </button>
+                    ))}
+                  </div>
+
+                  <SliderField
+                    label="Loan Amount"
+                    value={emiCalc.amount}
+                    min={10000}
+                    max={10000000}
+                    step={10000}
+                    suffix="INR"
+                    onChange={(value) => setEmiCalc({ ...emiCalc, amount: value })}
+                  />
+
+                  <SliderField
+                    label="Rate of Interest"
+                    value={emiCalc.rate}
+                    min={1}
+                    max={24}
+                    step={0.1}
+                    suffix="%"
+                    onChange={(value) => setEmiCalc({ ...emiCalc, rate: value })}
+                  />
+
+                  <SliderField
+                    label="Tenure"
+                    value={emiCalc.months}
+                    min={1}
+                    max={360}
+                    step={1}
+                    suffix="Months"
+                    onChange={(value) => setEmiCalc({ ...emiCalc, months: value })}
+                  />
+                </div>
+
+                <CalculatorResultPanel
+                  title={`${emiCalc.loanType} Result`}
+                  mainLabel="Loan EMI"
+                  mainValue={money(emiValue)}
+                  rows={[
+                    ["Principal Amount", money(emiCalc.amount)],
+                    ["Total Interest Payable", money(emiInterest)],
+                    ["Total Payment", money(emiTotal)]
+                  ]}
+                  chartPrimary={emiInterestPercent}
+                  chartPrimaryLabel="Interest"
+                  chartSecondaryLabel="Principal"
+                />
+              </section>
+            )}
+
+            {calcType === "sip" && (
+              <section style={calculatorGrid}>
+                <div style={calculatorInputPanel}>
+                  <PanelHeader
+                    title="SIP Calculator"
+                    subtitle="Monthly investment wealth projection"
+                    icon={<PiggyBank />}
+                  />
+
+                  <SliderField
+                    label="Monthly SIP"
+                    value={sipCalc.monthly}
+                    min={500}
+                    max={200000}
+                    step={500}
+                    suffix="INR"
+                    onChange={(value) => setSipCalc({ ...sipCalc, monthly: value })}
+                  />
+
+                  <SliderField
+                    label="Expected Annual Return"
+                    value={sipCalc.returnRate}
+                    min={1}
+                    max={30}
+                    step={0.5}
+                    suffix="%"
+                    onChange={(value) => setSipCalc({ ...sipCalc, returnRate: value })}
+                  />
+
+                  <SliderField
+                    label="Investment Duration"
+                    value={sipCalc.years}
+                    min={1}
+                    max={40}
+                    step={1}
+                    suffix="Years"
+                    onChange={(value) => setSipCalc({ ...sipCalc, years: value })}
+                  />
+                </div>
+
+                <CalculatorResultPanel
+                  title="SIP Wealth Projection"
+                  mainLabel="Future Value"
+                  mainValue={money(sipMaturity)}
+                  rows={[
+                    ["Total Invested", money(sipInvested)],
+                    ["Estimated Gains", money(sipGains)],
+                    ["Total Value", money(sipMaturity)]
+                  ]}
+                  chartPrimary={sipMaturity ? Math.round((sipGains / sipMaturity) * 100) : 0}
+                  chartPrimaryLabel="Gains"
+                  chartSecondaryLabel="Invested"
+                />
+              </section>
+            )}
+
+            {calcType === "lumpsum" && (
+              <section style={calculatorGrid}>
+                <div style={calculatorInputPanel}>
+                  <PanelHeader
+                    title="Lump Sum Calculator"
+                    subtitle="One-time investment growth"
+                    icon={<TrendingUp />}
+                  />
+
+                  <SliderField
+                    label="Investment Amount"
+                    value={lumpCalc.amount}
+                    min={1000}
+                    max={5000000}
+                    step={1000}
+                    suffix="INR"
+                    onChange={(value) => setLumpCalc({ ...lumpCalc, amount: value })}
+                  />
+
+                  <SliderField
+                    label="Expected Annual Return"
+                    value={lumpCalc.returnRate}
+                    min={1}
+                    max={30}
+                    step={0.5}
+                    suffix="%"
+                    onChange={(value) => setLumpCalc({ ...lumpCalc, returnRate: value })}
+                  />
+
+                  <SliderField
+                    label="Duration"
+                    value={lumpCalc.years}
+                    min={1}
+                    max={40}
+                    step={1}
+                    suffix="Years"
+                    onChange={(value) => setLumpCalc({ ...lumpCalc, years: value })}
+                  />
+                </div>
+
+                <CalculatorResultPanel
+                  title="Lump Sum Result"
+                  mainLabel="Future Value"
+                  mainValue={money(lumpMaturity)}
+                  rows={[
+                    ["Invested Amount", money(lumpCalc.amount)],
+                    ["Estimated Gains", money(lumpGains)],
+                    ["Total Value", money(lumpMaturity)]
+                  ]}
+                  chartPrimary={lumpMaturity ? Math.round((lumpGains / lumpMaturity) * 100) : 0}
+                  chartPrimaryLabel="Gains"
+                  chartSecondaryLabel="Invested"
+                />
+              </section>
+            )}
+
+            {calcType === "fd" && (
+              <section style={calculatorGrid}>
+                <div style={calculatorInputPanel}>
+                  <PanelHeader
+                    title="Fixed Deposit Calculator"
+                    subtitle="Maturity value estimate"
+                    icon={<Wallet />}
+                  />
+
+                  <SliderField
+                    label="Deposit Amount"
+                    value={fdCalc.amount}
+                    min={1000}
+                    max={5000000}
+                    step={1000}
+                    suffix="INR"
+                    onChange={(value) => setFdCalc({ ...fdCalc, amount: value })}
+                  />
+
+                  <SliderField
+                    label="Interest Rate"
+                    value={fdCalc.rate}
+                    min={1}
+                    max={15}
+                    step={0.1}
+                    suffix="%"
+                    onChange={(value) => setFdCalc({ ...fdCalc, rate: value })}
+                  />
+
+                  <SliderField
+                    label="Duration"
+                    value={fdCalc.years}
+                    min={1}
+                    max={20}
+                    step={1}
+                    suffix="Years"
+                    onChange={(value) => setFdCalc({ ...fdCalc, years: value })}
+                  />
+                </div>
+
+                <CalculatorResultPanel
+                  title="FD Maturity Result"
+                  mainLabel="Maturity Value"
+                  mainValue={money(fdValue)}
+                  rows={[
+                    ["Principal", money(fdCalc.amount)],
+                    ["Interest Earned", money(fdInterest)],
+                    ["Maturity Value", money(fdValue)]
+                  ]}
+                  chartPrimary={fdValue ? Math.round((fdInterest / fdValue) * 100) : 0}
+                  chartPrimaryLabel="Interest"
+                  chartSecondaryLabel="Principal"
+                />
+              </section>
+            )}
+
+            {calcType === "rd" && (
+              <section style={calculatorGrid}>
+                <div style={calculatorInputPanel}>
+                  <PanelHeader
+                    title="Recurring Deposit Calculator"
+                    subtitle="Monthly deposit maturity estimate"
+                    icon={<Wallet />}
+                  />
+
+                  <SliderField
+                    label="Monthly Deposit"
+                    value={rdCalc.monthly}
+                    min={500}
+                    max={200000}
+                    step={500}
+                    suffix="INR"
+                    onChange={(value) => setRdCalc({ ...rdCalc, monthly: value })}
+                  />
+
+                  <SliderField
+                    label="Interest Rate"
+                    value={rdCalc.rate}
+                    min={1}
+                    max={15}
+                    step={0.1}
+                    suffix="%"
+                    onChange={(value) => setRdCalc({ ...rdCalc, rate: value })}
+                  />
+
+                  <SliderField
+                    label="Duration"
+                    value={rdCalc.years}
+                    min={1}
+                    max={20}
+                    step={1}
+                    suffix="Years"
+                    onChange={(value) => setRdCalc({ ...rdCalc, years: value })}
+                  />
+                </div>
+
+                <CalculatorResultPanel
+                  title="RD Maturity Result"
+                  mainLabel="Maturity Value"
+                  mainValue={money(rdValue)}
+                  rows={[
+                    ["Total Deposited", money(rdInvested)],
+                    ["Interest Earned", money(rdInterest)],
+                    ["Maturity Value", money(rdValue)]
+                  ]}
+                  chartPrimary={rdValue ? Math.round((rdInterest / rdValue) * 100) : 0}
+                  chartPrimaryLabel="Interest"
+                  chartSecondaryLabel="Deposited"
+                />
+              </section>
+            )}
+
+            {calcType === "goal" && (
+              <section style={calculatorGrid}>
+                <div style={calculatorInputPanel}>
+                  <PanelHeader
+                    title="Goal Planning Calculator"
+                    subtitle="Know how much to save monthly"
+                    icon={<Target />}
+                  />
+
+                  <SliderField
+                    label="Goal Target"
+                    value={goalCalc.target}
+                    min={10000}
+                    max={10000000}
+                    step={10000}
+                    suffix="INR"
+                    onChange={(value) => setGoalCalc({ ...goalCalc, target: value })}
+                  />
+
+                  <SliderField
+                    label="Already Saved"
+                    value={goalCalc.current}
+                    min={0}
+                    max={goalCalc.target}
+                    step={1000}
+                    suffix="INR"
+                    onChange={(value) => setGoalCalc({ ...goalCalc, current: value })}
+                  />
+
+                  <SliderField
+                    label="Time Available"
+                    value={goalCalc.years}
+                    min={1}
+                    max={30}
+                    step={1}
+                    suffix="Years"
+                    onChange={(value) => setGoalCalc({ ...goalCalc, years: value })}
+                  />
+
+                  <SliderField
+                    label="Expected Return"
+                    value={goalCalc.returnRate}
+                    min={0}
+                    max={25}
+                    step={0.5}
+                    suffix="%"
+                    onChange={(value) => setGoalCalc({ ...goalCalc, returnRate: value })}
+                  />
+                </div>
+
+                <CalculatorResultPanel
+                  title="Goal Plan Result"
+                  mainLabel="Monthly SIP Required"
+                  mainValue={money(goalSIPRequired)}
+                  rows={[
+                    ["Goal Gap", money(goalGap)],
+                    ["Simple Monthly Saving", money(goalMonthlyRequired)],
+                    ["Return-adjusted Monthly SIP", money(goalSIPRequired)]
+                  ]}
+                  chartPrimary={goalCalc.target ? Math.round((goalCalc.current / goalCalc.target) * 100) : 0}
+                  chartPrimaryLabel="Saved"
+                  chartSecondaryLabel="Remaining"
+                />
+              </section>
+            )}
+
+            {calcType === "card" && (
+              <section style={calculatorGrid}>
+                <div style={calculatorInputPanel}>
+                  <PanelHeader
+                    title="Credit Card Payoff Calculator"
+                    subtitle="Estimate debt clearance timeline"
+                    icon={<CreditCard />}
+                  />
+
+                  <SliderField
+                    label="Outstanding Amount"
+                    value={cardCalc.outstanding}
+                    min={1000}
+                    max={1000000}
+                    step={1000}
+                    suffix="INR"
+                    onChange={(value) => setCardCalc({ ...cardCalc, outstanding: value })}
+                  />
+
+                  <SliderField
+                    label="Annual Interest Rate"
+                    value={cardCalc.annualRate}
+                    min={12}
+                    max={60}
+                    step={0.5}
+                    suffix="%"
+                    onChange={(value) => setCardCalc({ ...cardCalc, annualRate: value })}
+                  />
+
+                  <SliderField
+                    label="Monthly Payment"
+                    value={cardCalc.monthlyPayment}
+                    min={500}
+                    max={200000}
+                    step={500}
+                    suffix="INR"
+                    onChange={(value) => setCardCalc({ ...cardCalc, monthlyPayment: value })}
+                  />
+                </div>
+
+                <CalculatorResultPanel
+                  title="Credit Card Payoff Result"
+                  mainLabel="Months to Clear"
+                  mainValue={cardMonths.months >= 999 ? "Not possible" : `${cardMonths.months} months`}
+                  rows={[
+                    ["Outstanding", money(cardCalc.outstanding)],
+                    ["Estimated Interest", money(cardMonths.totalInterest)],
+                    ["Monthly Payment", money(cardCalc.monthlyPayment)]
+                  ]}
+                  chartPrimary={
+                    cardCalc.outstanding + cardMonths.totalInterest
+                      ? Math.round((cardMonths.totalInterest / (cardCalc.outstanding + cardMonths.totalInterest)) * 100)
+                      : 0
+                  }
+                  chartPrimaryLabel="Interest"
+                  chartSecondaryLabel="Principal"
+                />
+              </section>
+            )}
           </section>
         )}
 
@@ -1050,6 +1950,7 @@ function getPageTitle(tab: string) {
     dashboard: "Dashboard",
     transactions: "Transactions",
     spending: "Spending Analytics",
+    calculators: "Financial Calculators",
     loans: "Loans & Debt",
     goals: "Goals",
     "mutual funds": "Mutual Funds",
@@ -1207,6 +2108,115 @@ function TransactionTable({
               <Trash2 size={14} />
             </button>
           </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SliderField({
+  label,
+  value,
+  min,
+  max,
+  step,
+  suffix,
+  onChange
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  suffix: string;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <div style={sliderBlock}>
+      <div style={sliderTopRow}>
+        <strong>{label}</strong>
+        <div style={sliderValueBox}>
+          <input
+            value={value}
+            type="number"
+            onChange={(e) => onChange(Number(e.target.value))}
+            style={sliderNumberInput}
+          />
+          <span style={sliderSuffix}>{suffix}</span>
+        </div>
+      </div>
+
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        style={rangeStyle}
+      />
+    </div>
+  );
+}
+
+function CalculatorResultPanel({
+  title,
+  mainLabel,
+  mainValue,
+  rows,
+  chartPrimary,
+  chartPrimaryLabel,
+  chartSecondaryLabel
+}: {
+  title: string;
+  mainLabel: string;
+  mainValue: string;
+  rows: [string, string][];
+  chartPrimary: number;
+  chartPrimaryLabel: string;
+  chartSecondaryLabel: string;
+}) {
+  const primary = Math.min(Math.max(chartPrimary, 0), 100);
+  const secondary = 100 - primary;
+
+  return (
+    <div style={calculatorResultPanel}>
+      <PanelHeader title={title} subtitle="Calculation summary" icon={<BarChart3 />} />
+
+      <div style={donutWrap}>
+        <div
+          style={{
+            ...donut,
+            background: `conic-gradient(#3155d4 0% ${primary}%, #e5e7eb ${primary}% 100%)`
+          }}
+        >
+          <div style={donutCenter}>
+            <strong>{primary}%</strong>
+            <span>{chartPrimaryLabel}</span>
+          </div>
+        </div>
+
+        <div style={legendWrap}>
+          <div style={legendItem}>
+            <span style={{ ...legendDot, background: "#3155d4" }} />
+            {chartPrimaryLabel}: {primary}%
+          </div>
+          <div style={legendItem}>
+            <span style={{ ...legendDot, background: "#e5e7eb" }} />
+            {chartSecondaryLabel}: {secondary}%
+          </div>
+        </div>
+      </div>
+
+      <div style={resultMainBox}>
+        <p style={mutedText}>{mainLabel}</p>
+        <h2 style={calculatorMainValue}>{mainValue}</h2>
+      </div>
+
+      {rows.map(([label, value]) => (
+        <div key={label} style={dataRow}>
+          <span>{label}</span>
+          <strong>{value}</strong>
         </div>
       ))}
     </div>
@@ -1413,7 +2423,7 @@ const topbarRight: CSSProperties = {
 };
 
 const searchBox: CSSProperties = {
-  minWidth: 300,
+  minWidth: 360,
   display: "flex",
   alignItems: "center",
   gap: 8,
@@ -1423,6 +2433,15 @@ const searchBox: CSSProperties = {
   borderRadius: 16,
   border: "1px solid #e2e8f0",
   boxShadow: "0 8px 25px rgba(15,23,42,0.06)"
+};
+
+const searchInput: CSSProperties = {
+  border: 0,
+  outline: "none",
+  width: "100%",
+  background: "transparent",
+  color: "#0f172a",
+  fontSize: 15
 };
 
 const iconButton: CSSProperties = {
@@ -1435,6 +2454,86 @@ const iconButton: CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
   cursor: "pointer"
+};
+
+const searchResultsPanel: CSSProperties = {
+  background: "white",
+  borderRadius: 26,
+  padding: 22,
+  border: "1px solid #e2e8f0",
+  boxShadow: "0 14px 45px rgba(15,23,42,0.06)",
+  marginBottom: 20
+};
+
+const searchGrid: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 16
+};
+
+const searchSectionTitle: CSSProperties = {
+  margin: "0 0 12px",
+  fontSize: 18
+};
+
+const searchResultRow: CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 12,
+  alignItems: "center",
+  padding: "14px 0",
+  borderBottom: "1px solid #e5e7eb"
+};
+
+const resultTypeBadge: CSSProperties = {
+  display: "inline-block",
+  padding: "5px 9px",
+  borderRadius: 999,
+  background: "#eef2ff",
+  color: "#4338ca",
+  fontSize: 12,
+  fontWeight: 900
+};
+
+const sourceCard: CSSProperties = {
+  display: "block",
+  padding: 14,
+  borderRadius: 18,
+  background: "#f8fafc",
+  border: "1px solid #e2e8f0",
+  marginBottom: 12,
+  color: "#0f172a",
+  textDecoration: "none"
+};
+
+const sourceCategoryBadge: CSSProperties = {
+  display: "inline-block",
+  padding: "5px 9px",
+  borderRadius: 999,
+  background: "#dcfce7",
+  color: "#166534",
+  fontSize: 12,
+  fontWeight: 900
+};
+
+const sourceLinkText: CSSProperties = {
+  margin: "8px 0 0",
+  color: "#2563eb",
+  fontWeight: 900,
+  fontSize: 14
+};
+
+const antiHallucinationBox: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 10,
+  marginTop: 16,
+  padding: 14,
+  borderRadius: 18,
+  background: "#fffbeb",
+  color: "#92400e",
+  border: "1px solid #fde68a",
+  fontWeight: 800
 };
 
 const heroPanel: CSSProperties = {
@@ -1457,6 +2556,18 @@ const premiumBadge: CSSProperties = {
   padding: "8px 12px",
   borderRadius: 999,
   background: "rgba(255,255,255,0.16)",
+  fontSize: 13,
+  fontWeight: 900
+};
+
+const premiumBadgeDark: CSSProperties = {
+  display: "inline-flex",
+  gap: 8,
+  alignItems: "center",
+  padding: "8px 12px",
+  borderRadius: 999,
+  background: "rgba(15, 23, 42, 0.08)",
+  color: "#064e3b",
   fontSize: 13,
   fontWeight: 900
 };
@@ -1875,4 +2986,206 @@ const footerActions: CSSProperties = {
   display: "flex",
   gap: 10,
   flexWrap: "wrap"
+};
+
+const calculatorHero: CSSProperties = {
+  background:
+    "linear-gradient(135deg, rgba(255,255,255,0.95), rgba(220,252,231,0.95))",
+  border: "1px solid #d1fae5",
+  boxShadow: "0 18px 55px rgba(15,23,42,0.08)",
+  borderRadius: 30,
+  padding: 26,
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 18,
+  marginBottom: 18
+};
+
+const calculatorHeroTitle: CSSProperties = {
+  fontSize: 34,
+  margin: "14px 0 8px",
+  letterSpacing: "-1px"
+};
+
+const calculatorHeroText: CSSProperties = {
+  color: "#475569",
+  maxWidth: 780,
+  lineHeight: 1.5,
+  margin: 0
+};
+
+const calculatorTabs: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 10,
+  marginBottom: 18
+};
+
+const calculatorTab: CSSProperties = {
+  border: "1px solid #cbd5e1",
+  background: "white",
+  color: "#0f172a",
+  padding: "10px 14px",
+  borderRadius: 999,
+  cursor: "pointer",
+  fontWeight: 850
+};
+
+const calculatorTabActive: CSSProperties = {
+  ...calculatorTab,
+  background: "#3155d4",
+  color: "white",
+  border: "1px solid #3155d4",
+  boxShadow: "0 12px 30px rgba(49,85,212,0.25)"
+};
+
+const calculatorGrid: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "1fr 0.85fr",
+  gap: 18
+};
+
+const calculatorInputPanel: CSSProperties = {
+  ...panel,
+  minHeight: 520
+};
+
+const calculatorResultPanel: CSSProperties = {
+  ...panel,
+  minHeight: 520,
+  display: "flex",
+  flexDirection: "column"
+};
+
+const loanTypeGrid: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(3, 1fr)",
+  gap: 8,
+  marginBottom: 16
+};
+
+const loanTypeButton: CSSProperties = {
+  border: "1px solid #cbd5e1",
+  background: "#f8fafc",
+  color: "#0f172a",
+  padding: "12px 10px",
+  borderRadius: 14,
+  cursor: "pointer",
+  fontWeight: 850
+};
+
+const loanTypeActive: CSSProperties = {
+  ...loanTypeButton,
+  background: "#3155d4",
+  color: "white",
+  border: "1px solid #3155d4"
+};
+
+const sliderBlock: CSSProperties = {
+  padding: 16,
+  borderRadius: 20,
+  background: "#f8fafc",
+  border: "1px solid #e2e8f0",
+  marginBottom: 14
+};
+
+const sliderTopRow: CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 12,
+  alignItems: "center",
+  marginBottom: 12
+};
+
+const sliderValueBox: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  border: "1px solid #cbd5e1",
+  borderRadius: 12,
+  overflow: "hidden",
+  background: "white"
+};
+
+const sliderNumberInput: CSSProperties = {
+  width: 110,
+  border: 0,
+  outline: "none",
+  padding: "9px 10px",
+  fontWeight: 800
+};
+
+const sliderSuffix: CSSProperties = {
+  padding: "9px 10px",
+  background: "#3155d4",
+  color: "white",
+  fontWeight: 900,
+  fontSize: 12
+};
+
+const rangeStyle: CSSProperties = {
+  width: "100%",
+  accentColor: "#3155d4"
+};
+
+const donutWrap: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 20,
+  margin: "8px 0 20px"
+};
+
+const donut: CSSProperties = {
+  width: 190,
+  height: 190,
+  borderRadius: "50%",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center"
+};
+
+const donutCenter: CSSProperties = {
+  width: 110,
+  height: 110,
+  borderRadius: "50%",
+  background: "white",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  boxShadow: "inset 0 0 0 1px #e5e7eb"
+};
+
+const legendWrap: CSSProperties = {
+  display: "grid",
+  gap: 10
+};
+
+const legendItem: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+  color: "#475569",
+  fontWeight: 800
+};
+
+const legendDot: CSSProperties = {
+  width: 12,
+  height: 12,
+  borderRadius: "50%"
+};
+
+const resultMainBox: CSSProperties = {
+  padding: 18,
+  borderRadius: 20,
+  background: "linear-gradient(135deg, #eef2ff, #f8fafc)",
+  textAlign: "center",
+  marginBottom: 10
+};
+
+const calculatorMainValue: CSSProperties = {
+  margin: "4px 0 0",
+  fontSize: 32,
+  letterSpacing: "-1px"
 };
